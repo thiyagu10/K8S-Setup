@@ -1,5 +1,5 @@
 ##################################################################################################
-#	Create the K8S Cluser and deploy the NGINX Webserver on it                      			 #
+#	Create the K8S Cluster and deploy the NGINX Webserver on it                      	 #
 ##################################################################################################
 
 #! /bin/bash
@@ -12,15 +12,14 @@ apt install wget -y
 apt install tcpdump -y
 apt install net-tools -y
 wget -qO- https://get.docker.com/ | sh
-sudo swapoff -a
 
+sudo swapoff -a
 lsmod | grep br_netfilter
 sudo modprobe br_netfilter
 lsmod | grep br_netfilter
 cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
 br_netfilter
 EOF
-
 cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
@@ -67,12 +66,15 @@ kubectl get pods --show-labels
 kubectl get deployment nginx-deployment
 kubectl describe deployments
 
-kubectl get all ### Get all deployments
+### Get all deployments
+kubectl get all 
 
 ### Access the NGIX Webserver with the Port provide on the Services
 http://35.244.54.79:31576/
 
+### Modify the NGINX Webserver Cluster
 kubectl set image deployment/nginx-deployment nginx=nginx:1.161
+kubectl edit deployment nginx-webcluster
 
 ### Delete the NGINX Webserver Cluster
 kubectl get services
