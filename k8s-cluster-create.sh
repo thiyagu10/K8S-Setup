@@ -1,5 +1,5 @@
 ##################################################################################################
-#	Create the K8S Cluster and deploy the NGINX Webserver on it                      	 #
+#	Create the K8S Cluster and deploy the NGINX Webserver on it                              #
 ##################################################################################################
 
 #! /bin/bash
@@ -12,14 +12,15 @@ apt install wget -y
 apt install tcpdump -y
 apt install net-tools -y
 wget -qO- https://get.docker.com/ | sh
-
 sudo swapoff -a
+
 lsmod | grep br_netfilter
 sudo modprobe br_netfilter
 lsmod | grep br_netfilter
 cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
 br_netfilter
 EOF
+
 cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
@@ -55,22 +56,27 @@ kubectl get nodes
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.4.0/aio/deploy/recommended.yaml
 kubectl proxy
 
+### Create Namespace
+kubectl create namespace blr-websvr-cl01
+kubectl get namespace
+
 
 ### Deploy the NGINX Webserver Cluster
-kubectl apply -f https://k8s.io/examples/controllers/nginx-deployment.yaml				## Creates Only Internal POD ##
-kubectl get deployments
-kubectl expose deployment nginx-deployment --type=LoadBalancer --name=nginx-web-server	## Exposes the deployed Webserver ##
-kubectl get services
-kubectl rollout status deployment nginx-deployment
+kubectl apply -f https://k8s.io/examples/controllers/nginx-deployment.yaml				## Creates Only Internal POD OR below yaml file ##
+kubectl apply -f nginx-deployment.yaml --namespace=blr-websvr-cl01
+kubectl get deployments --namespace=blr-websvr-cl01
+## Exposes the deployed Webserver ##
+kubectl expose deployment nginx-webcluster --type=LoadBalancer --name=nginx-web-server	--namespace=blr-websvr-cl01
+kubectl get services --namespace=blr-websvr-cl01
+kubectl rollout status deployment nginx-webcluster --namespace=blr-websvr-cl01
 kubectl get pods --show-labels
-kubectl get deployment nginx-deployment
-kubectl describe deployments
+kubectl get deployment nginx-webcluster --namespace=blr-websvr-cl01
+kubectl describe deployments --namespace=blr-websvr-cl01
 
-### Get all deployments
-kubectl get all 
+kubectl get all ### Get all deployments
 
 ### Access the NGIX Webserver with the Port provide on the Services
-http://35.244.54.79:31576/
+http://<public-IP-masterNode>:<portNo-in-service>/
 
 ### Modify the NGINX Webserver Cluster
 kubectl set image deployment/nginx-deployment nginx=nginx:1.161
@@ -78,11 +84,10 @@ kubectl edit deployment nginx-webcluster
 
 ### Delete the NGINX Webserver Cluster
 kubectl get services
-kubectl delete service nginx-web-server01
+kubectl delete service nginx-web-server
 kubectl get services
 kubectl get deployments
-kubectl delete delpoyment nginx-webcluster
+kubectl delete deployment nginx-webcluster
 kubectl get deployments
-
 
 ##################################################################################################
