@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # Deployment Name
+  name: nginx-webcluster
+  labels:
+    app: webserver
+spec:
+  # Number of Pods
+  replicas: 4
+  # Select the label
+  selector:
+    matchLabels:
+      app: webserver
+  template:
+    metadata:
+      labels:
+        app: webserver
+    spec:
+      containers: # Container Details
+      - name: nginx
+        image: nginx:latest # Container Image
+        ports:
+        - containerPort: 80
+          protocol: TCP
